@@ -1,0 +1,13 @@
+[package]
+name = "plottwist"
+version = "0.1.0"
+authors = ["Michał Sidor (Michcioperz) <public+git@meekchopp.es>"]
+
+[dependencies]
+cursive = "0.6.4"
+reqwest = "0.7.3"
+regex = "0.2.2"
+lazy_static = "0.2.8"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0"
