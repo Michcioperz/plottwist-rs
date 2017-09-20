@@ -10,7 +10,7 @@ use std::io::Read;
 use std::str::FromStr;
 use regex::Regex;
 
-#[derive(Deserialize)]
+#[derive(Deserialize,Debug)]
 pub struct Episode {
     pub source: String,
     pub number: usize,
@@ -27,6 +27,7 @@ struct SeriesObject {
     episodes: Vec<Episode>,
 }
 
+#[derive(Debug)]
 pub struct Series {
     pub title: String,
     pub alt_title: String,
