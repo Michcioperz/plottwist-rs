@@ -16,7 +16,7 @@ fn main() {
         episodes_view.add_item(format!("Episode {}", episode.number), episode);
     }
     episodes_view.set_on_submit(|_, episode| {
-        Command::new("mpv").arg("--fs").arg(episode.url()).status().unwrap();
+        Command::new("mpv").arg("--really-quiet").arg("--fs").arg(episode.url()).status().unwrap();
     });
     let mut siv = Cursive::new();
     siv.add_layer(Dialog::around(episodes_view).title("Episodes list"));
