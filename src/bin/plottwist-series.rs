@@ -2,10 +2,10 @@ extern crate cursive;
 extern crate plottwist;
 
 use cursive::Cursive;
-use cursive::views::{Dialog,SelectView};
+use cursive::views::{Dialog, SelectView};
 use std::process::Command;
 
-use plottwist::{fetch_series_list};
+use plottwist::fetch_series_list;
 
 fn main() {
     let series_list = fetch_series_list();
@@ -14,7 +14,12 @@ fn main() {
         series_view.add_item(format!("{}", series), series);
     }
     series_view.set_on_submit(|_, serie| {
-        Command::new("urxvt").arg("-e").arg("plottwist-episodes").arg(&serie.slug).spawn().unwrap();
+        Command::new("urxvt")
+            .arg("-e")
+            .arg("plottwist-episodes")
+            .arg(&serie.slug)
+            .spawn()
+            .unwrap();
     });
     let mut siv = Cursive::new();
     siv.add_layer(Dialog::around(series_view).title("Series list"));

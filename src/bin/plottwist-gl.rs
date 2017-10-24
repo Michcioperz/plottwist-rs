@@ -6,8 +6,7 @@ use glutin::GlContext;
 
 fn main() {
     let mut events_loop = glutin::EventsLoop::new();
-    let window = glutin::WindowBuilder::new()
-        .with_fullscreen(glutin::get_primary_monitor());
+    let window = glutin::WindowBuilder::new().with_fullscreen(glutin::get_primary_monitor());
     let context = glutin::ContextBuilder::new();
     let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
 
@@ -22,15 +21,15 @@ fn main() {
 
     let mut running = true;
     while running {
-        events_loop.poll_events(|event| {
-            match event {
-                glutin::Event::WindowEvent{ event, .. } => match event {
+        events_loop.poll_events(|event| match event {
+            glutin::Event::WindowEvent { event, .. } => {
+                match event {
                     glutin::WindowEvent::Closed => running = false,
                     glutin::WindowEvent::Resized(w, h) => gl_window.resize(w, h),
-                    _ => ()
-                },
-                _ => ()
+                    _ => (),
+                }
             }
+            _ => (),
         });
 
         unsafe {

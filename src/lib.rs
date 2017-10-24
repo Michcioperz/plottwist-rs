@@ -1,16 +1,18 @@
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 extern crate serde;
 extern crate serde_json;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate regex;
 extern crate reqwest;
 extern crate htmlescape;
 
-use std::fmt::{self,Display};
+use std::fmt::{self, Display};
 use std::io::Read;
 use regex::Regex;
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Episode {
     pub source: String,
     pub number: usize,
@@ -37,19 +39,18 @@ pub struct Series {
 
 impl Display for Series {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-            write!(f, "{}{}{} [{}]", 
-                   if self.ongoing {
-                       "{O} "
-                   } else {
-                       "    "
-                   },
-                   self.title, 
-                   if !self.alt_title.is_empty() {
-                       format!(" ({})", self.alt_title)
-                   } else {
-                       format!("")
-                   },
-                   self.slug)
+        write!(
+            f,
+            "{}{}{} [{}]",
+            if self.ongoing { "{O} " } else { "    " },
+            self.title,
+            if !self.alt_title.is_empty() {
+                format!(" ({})", self.alt_title)
+            } else {
+                format!("")
+            },
+            self.slug
+        )
     }
 }
 
@@ -90,12 +91,17 @@ impl Series {
                 } else {
                     false
                 };
-                let x = Series { ongoing: ongoing, slug: slug, title: htmlescape::decode_html(c.get(2).unwrap().as_str()).unwrap(), alt_title: match c.get(3) {
-                    Some(m) => htmlescape::decode_html(m.as_str()).unwrap(),
-                    None => String::from(""),
-                }};
+                let x = Series {
+                    ongoing: ongoing,
+                    slug: slug,
+                    title: htmlescape::decode_html(c.get(2).unwrap().as_str()).unwrap(),
+                    alt_title: match c.get(3) {
+                        Some(m) => htmlescape::decode_html(m.as_str()).unwrap(),
+                        None => String::from(""),
+                    },
+                };
                 Some(x)
-            },
+            }
             None => None,
         }
     }
@@ -108,11 +114,17 @@ pub fn fetch_series_list() -> Vec<Series> {
     resp.read_to_string(&mut content).unwrap();
     let ongoings_regex = Regex::new(r#"<a href="/a/(?P<slug>[a-zA-Z0-9-]+?)/last" tabindex="-1" class="fixed ongoing">ONGOING</a>"#).unwrap();
     let ongoings: regex::CaptureMatches = ongoings_regex.captures_iter(&content);
-    let mut ongoings: Vec<String> = ongoings.map(|capture: regex::Captures| {
-        let m: regex::Match = capture.get(1).unwrap();
-        let s: &str = m.as_str();
-        String::from(s)
-    }).collect();
+    let mut ongoings: Vec<String> = ongoings
+        .map(|capture: regex::Captures| {
+            let m: regex::Match = capture.get(1).unwrap();
+            let s: &str = m.as_str();
+            String::from(s)
+        })
+        .collect();
     ongoings.reverse();
-    content.lines().map(|line| Series::from_match(line, &mut ongoings)).filter_map(|x| x).collect()
+    content
+        .lines()
+        .map(|line| Series::from_match(line, &mut ongoings))
+        .filter_map(|x| x)
+        .collect()
 }
