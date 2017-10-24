@@ -4,10 +4,10 @@ extern crate serde_json;
 #[macro_use] extern crate serde_derive;
 extern crate regex;
 extern crate reqwest;
+extern crate htmlescape;
 
 use std::fmt::{self,Display};
 use std::io::Read;
-use std::str::FromStr;
 use regex::Regex;
 
 #[derive(Deserialize,Debug)]
@@ -32,6 +32,25 @@ pub struct Series {
     pub title: String,
     pub alt_title: String,
     pub slug: String,
+    pub ongoing: bool,
+}
+
+impl Display for Series {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "{}{}{} [{}]", 
+                   if self.ongoing {
+                       "{O} "
+                   } else {
+                       "    "
+                   },
+                   self.title, 
+                   if !self.alt_title.is_empty() {
+                       format!(" ({})", self.alt_title)
+                   } else {
+                       format!("")
+                   },
+                   self.slug)
+    }
 }
 
 impl Series {
@@ -53,34 +72,31 @@ impl Series {
     pub fn url(&self) -> String {
         format!("https://twist.moe/a/{}", self.slug)
     }
-}
 
-
-impl Display for Series {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.alt_title.is_empty() {
-            write!(f, "{} [{}]", self.title, self.slug)
-        } else {
-            write!(f, "{} ({}) [{}]", self.title, self.alt_title, self.slug)
-        }
-    }
-}
-
-impl FromStr for Series {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_match(s: &str, ongoings: &mut Vec<String>) -> Option<Series> {
         lazy_static! {
             static ref RE: Regex = Regex::new(r#"<a href="/a/(?P<slug>[a-zA-Z0-9-]+?)" class="series-title" data-title="(?P<title>[^"]*?)"(?: data-alt="(?P<alt>[^"]*?)")?>[^<]+"#).unwrap();
         }
         match RE.captures(s) {
             Some(c) => {
-                let x = Self { slug: c.get(1).unwrap().as_str().to_string(), title: c.get(2).unwrap().as_str().to_string(), alt_title: match c.get(3) {
-                    Some(m) => m.as_str().to_string(),
+                let slug: String = htmlescape::decode_html(c.get(1).unwrap().as_str()).unwrap();
+                let ongoing: bool = if let Some(last_ongoing) = ongoings.pop() {
+                    if last_ongoing.as_str() == slug.as_str() {
+                        true
+                    } else {
+                        ongoings.push(last_ongoing);
+                        false
+                    }
+                } else {
+                    false
+                };
+                let x = Series { ongoing: ongoing, slug: slug, title: htmlescape::decode_html(c.get(2).unwrap().as_str()).unwrap(), alt_title: match c.get(3) {
+                    Some(m) => htmlescape::decode_html(m.as_str()).unwrap(),
                     None => String::from(""),
                 }};
-                Ok(x)
+                Some(x)
             },
-            None => Err(String::from("oh no")),
+            None => None,
         }
     }
 }
@@ -90,5 +106,13 @@ pub fn fetch_series_list() -> Vec<Series> {
     let mut resp = reqwest::get("https://twist.moe").unwrap();
     let mut content = String::new();
     resp.read_to_string(&mut content).unwrap();
-    content.lines().map(Series::from_str).filter_map(Result::ok).collect()
+    let ongoings_regex = Regex::new(r#"<a href="/a/(?P<slug>[a-zA-Z0-9-]+?)/last" tabindex="-1" class="fixed ongoing">ONGOING</a>"#).unwrap();
+    let ongoings: regex::CaptureMatches = ongoings_regex.captures_iter(&content);
+    let mut ongoings: Vec<String> = ongoings.map(|capture: regex::Captures| {
+        let m: regex::Match = capture.get(1).unwrap();
+        let s: &str = m.as_str();
+        String::from(s)
+    }).collect();
+    ongoings.reverse();
+    content.lines().map(|line| Series::from_match(line, &mut ongoings)).filter_map(|x| x).collect()
 }

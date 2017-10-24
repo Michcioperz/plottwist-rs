@@ -9,7 +9,7 @@ use std::process::Command;
 use plottwist::Series;
 
 fn main() {
-    let serie = Series { slug: env::args().last().expect("you must specify series slug as argument"), title: String::from(""), alt_title: String::from("") };
+    let serie = Series { slug: env::args().last().expect("you must specify series slug as argument"), title: String::from(""), alt_title: String::from(""), ongoing: false };
     let episodes = serie.episodes();
     let mut episodes_view = SelectView::new().h_align(cursive::align::HAlign::Left);
     for episode in episodes {

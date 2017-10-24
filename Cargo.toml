@@ -1,10 +1,11 @@
 [package]
 name = "plottwist"
-version = "0.3.0"
+version = "0.5.0"
 authors = ["qieyia <qieyia.dev@gmail.com>"]
 
 [features]
-binaries = ["cursive"]
+ncurses = ["cursive"]
+opengl = ["glutin", "gl"]
 
 [lib]
 name = "plottwist"
@@ -14,15 +15,23 @@ doc = true
 [[bin]]
 name = "plottwist-series"
 path = "src/bin/plottwist-series.rs"
-required-features = ["binaries"]
+required-features = ["ncurses"]
 
 [[bin]]
 name = "plottwist-episodes"
 path = "src/bin/plottwist-episodes.rs"
-required-features = ["binaries"]
+required-features = ["ncurses"]
+
+[[bin]]
+name = "plottwist-gl"
+path = "src/bin/plottwist-gl.rs"
+required-features = ["opengl"]
 
 [dependencies]
+glutin = { version = "0.9.2", optional = true }
+gl = { version = "0.6.3", optional = true }
 cursive = { version = "0.6.4", optional = true }
+htmlescape = "0.3.1"
 reqwest = "0.7.3"
 regex = "0.2.2"
 lazy_static = "0.2.8"
