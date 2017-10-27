@@ -16,6 +16,7 @@ fn main() {
         title: String::from(""),
         alt_title: String::from(""),
         ongoing: false,
+        favourite: false,
     };
     let episodes = serie.episodes();
     let mut episodes_view = SelectView::new().h_align(cursive::align::HAlign::Left);
